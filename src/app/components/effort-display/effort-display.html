@@ -1,0 +1,134 @@
+<div class="effort-display-container">
+  <div class="header">
+    <h2 mat-dialog-title>{{ getTitle() }}</h2>
+    <button mat-icon-button (click)="close()" class="close-button">
+      <img src="assets/close_icon.png" alt="Close" width="24" height="24">
+    </button>
+  </div>
+
+  <div mat-dialog-content class="dialog-content">
+    <!-- Summary Section -->
+    <mat-card class="summary-card">
+      <mat-card-header>
+        <mat-card-title>Summary</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <table mat-table [dataSource]="getSummaryData()" class="summary-table">
+          <ng-container matColumnDef="metric">
+            <th mat-header-cell *matHeaderCellDef>Metric</th>
+            <td mat-cell *matCellDef="let element">{{ element.metric }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="value">
+            <th mat-header-cell *matHeaderCellDef>Value</th>
+            <td mat-cell *matCellDef="let element">{{ element.value }}</td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="summaryDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: summaryDisplayedColumns;"></tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-divider></mat-divider>
+
+    <!-- Detailed Data Section (only for consolidated reports) -->
+    <div *ngIf="isConsolidatedEffort()">
+      <mat-card class="details-card">
+        <mat-card-header>
+          <mat-card-title>Individual {{ data.userRole === 'lead' ? 'SME' : 'Reportee' }} Details</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="table-container">
+            <table mat-table [dataSource]="getTeamMembers()" class="details-table">
+              <ng-container matColumnDef="smeName">
+                <th mat-header-cell *matHeaderCellDef>Name</th>
+                <td mat-cell *matCellDef="let element">{{ element.smeName }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="smeEmail">
+                <th mat-header-cell *matHeaderCellDef>Email</th>
+                <td mat-cell *matCellDef="let element">{{ element.smeEmail }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="smeConnectCount">
+                <th mat-header-cell *matHeaderCellDef>SME Connect</th>
+                <td mat-cell *matCellDef="let element">{{ element.smeConnectCount }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="byteSizedCount">
+                <th mat-header-cell *matHeaderCellDef>Byte-sized Learning</th>
+                <td mat-cell *matCellDef="let element">{{ element.byteSizedCount }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="lateralTrainingCount">
+                <th mat-header-cell *matHeaderCellDef>Lateral Training</th>
+                <td mat-cell *matCellDef="let element">{{ element.lateralTrainingCount }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="questionContributionCount">
+                <th mat-header-cell *matHeaderCellDef>Question Contributions</th>
+                <td mat-cell *matCellDef="let element">{{ element.questionContributionCount }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="totalHoursAllocated">
+                <th mat-header-cell *matHeaderCellDef>Total Hours</th>
+                <td mat-cell *matCellDef="let element">{{ element.totalHoursAllocated }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="totalSessions">
+                <th mat-header-cell *matHeaderCellDef>Total Sessions</th>
+                <td mat-cell *matCellDef="let element">{{ element.totalSessions }}</td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+          </div>
+
+          <!-- Totals Row -->
+          <div class="totals-section">
+            <h3>Totals</h3>
+            <div class="totals-grid">
+              <div class="total-item">
+                <span class="total-label">Total {{ data.userRole === 'lead' ? 'SMEs' : 'Reportees' }}:</span>
+                <span class="total-value">{{ getConsolidatedEffortData().totals.totalReportees }}</span>
+              </div>
+              <div class="total-item">
+                <span class="total-label">SME Connect Sessions:</span>
+                <span class="total-value">{{ getConsolidatedEffortData().totals.totalSmeConnectCount }}</span>
+              </div>
+              <div class="total-item">
+                <span class="total-label">Byte-sized Learning:</span>
+                <span class="total-value">{{ getConsolidatedEffortData().totals.totalByteSizedCount }}</span>
+              </div>
+              <div class="total-item">
+                <span class="total-label">Lateral Training:</span>
+                <span class="total-value">{{ getConsolidatedEffortData().totals.totalLateralTrainingCount }}</span>
+              </div>
+              <div class="total-item">
+                <span class="total-label">Question Contributions:</span>
+                <span class="total-value">{{ getConsolidatedEffortData().totals.totalQuestionContributionCount }}</span>
+              </div>
+              <div class="total-item">
+                <span class="total-label">Total Hours:</span>
+                <span class="total-value">{{ getConsolidatedEffortData().totals.totalHoursAllocated }}</span>
+              </div>
+              <div class="total-item">
+                <span class="total-label">Total Sessions:</span>
+                <span class="total-value">{{ getConsolidatedEffortData().totals.totalSessions }}</span>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <div mat-dialog-actions class="dialog-actions">
+    <button mat-raised-button color="accent" (click)="exportToCSV()" class="export-button">
+      Export to CSV
+    </button>
+    <button mat-raised-button color="warn" (click)="close()" class="close-button-action">Close</button>
+  </div>
+</div>

@@ -1,0 +1,102 @@
+<div class="schedule-form-container">
+  <h2 mat-dialog-title>{{ isEditMode ? 'Edit Schedule' : 'Create Schedule' }}</h2>
+
+  <form [formGroup]="scheduleForm" (ngSubmit)="onSubmit()" class="schedule-form">
+    <mat-dialog-content>
+      <div class="form-section">
+        <h3 class="section-title">Schedule Details</h3>
+
+        <!-- Date Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Date</mat-label>
+          <input matInput
+                 type="date"
+                 formControlName="date"
+                 [min]="minDate"
+                 required>
+          <mat-error *ngIf="scheduleForm.get('date')?.hasError('required')">
+            Date is required
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Time Fields -->
+        <div class="time-row">
+          <mat-form-field appearance="outline" class="time-field">
+            <mat-label>From Time</mat-label>
+            <input matInput
+                   type="time"
+                   formControlName="fromTime"
+                   required>
+            <mat-error *ngIf="scheduleForm.get('fromTime')?.hasError('required')">
+              Start time is required
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="time-field">
+            <mat-label>To Time</mat-label>
+            <input matInput
+                   type="time"
+                   formControlName="toTime"
+                   required>
+            <mat-error *ngIf="scheduleForm.get('toTime')?.hasError('required')">
+              End time is required
+            </mat-error>
+            <mat-error *ngIf="scheduleForm.get('toTime')?.hasError('timeOrder')">
+              End time must be after start time
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Duration Display -->
+        <div class="duration-display" *ngIf="getDuration()">
+          <mat-icon>schedule</mat-icon>
+          <span>Duration: {{ getDuration() }}</span>
+        </div>
+
+        <!-- Activity Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Activity</mat-label>
+          <mat-select formControlName="activityId" required>
+            <mat-option *ngFor="let activity of activities" [value]="activity.id">
+              {{ activity.name }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="scheduleForm.get('activityId')?.hasError('required')">
+            Activity is required
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Description Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Description</mat-label>
+          <textarea matInput
+                    formControlName="description"
+                    placeholder="Describe this schedule or provide additional details..."
+                    rows="3"
+                    required></textarea>
+          <mat-error *ngIf="scheduleForm.get('description')?.hasError('required')">
+            Description is required
+          </mat-error>
+        </mat-form-field>
+      </div>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end" class="dialog-actions">
+      <button mat-button
+              type="button"
+              (click)="onCancel()"
+              [disabled]="isSubmitting">
+        Cancel
+      </button>
+
+      <button mat-raised-button
+              color="primary"
+              type="submit"
+              [disabled]="scheduleForm.invalid || isSubmitting">
+        <mat-spinner diameter="20" *ngIf="isSubmitting"></mat-spinner>
+        <span *ngIf="!isSubmitting">{{ isEditMode ? 'Update' : 'Create' }}</span>
+        <span *ngIf="isSubmitting">{{ isEditMode ? 'Updating...' : 'Creating...' }}</span>
+      </button>
+    </mat-dialog-actions>
+  </form>
+</div>

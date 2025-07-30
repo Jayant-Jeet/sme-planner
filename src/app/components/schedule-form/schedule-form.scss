@@ -1,0 +1,184 @@
+.schedule-form-container {
+  padding: 0;
+  margin: 0;
+
+  h2 {
+    margin: 0 0 20px 0;
+    padding: 24px 24px 0 24px;
+    font-size: 20px;
+    font-weight: 500;
+    color: #1976d2;
+  }
+}
+
+.schedule-form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  mat-dialog-content {
+    padding: 0 24px;
+    margin: 0;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+}
+
+.form-section {
+  margin-bottom: 16px;
+
+  .section-title {
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0 0 16px 0;
+    color: #424242;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 8px;
+  }
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.time-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+
+  .time-field {
+    flex: 1;
+  }
+}
+
+.duration-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  color: #666;
+  font-size: 14px;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #1976d2;
+  }
+}
+
+.status-icon {
+  margin-right: 8px;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+
+  &.available {
+    color: #4caf50;
+  }
+
+  &.busy {
+    color: #ff9800;
+  }
+
+  &.unavailable {
+    color: #f44336;
+  }
+}
+
+.dialog-actions {
+  padding: 16px 24px 24px 24px;
+  margin: 0;
+  gap: 12px;
+
+  button {
+    min-width: 80px;
+
+    &[color="primary"] {
+      background-color: #1976d2;
+
+      &:disabled {
+        background-color: #e0e0e0;
+        color: #9e9e9e;
+      }
+    }
+
+    mat-spinner {
+      margin-right: 8px;
+    }
+  }
+}
+
+// Form field styling
+::ng-deep {
+  .schedule-form-container {
+    .mat-mdc-form-field {
+      .mat-mdc-text-field-wrapper {
+        border-radius: 8px;
+      }
+
+      &.mat-form-field-appearance-outline {
+        .mat-mdc-form-field-outline {
+          border-radius: 8px;
+        }
+      }
+
+      // Add left padding to all input fields
+      input {
+        padding-left: 16px !important;
+      }
+
+      // Add left padding to textarea
+      textarea {
+        padding-left: 16px !important;
+      }
+
+      // Add left padding to select trigger
+      .mat-mdc-select-trigger {
+        padding-left: 16px !important;
+      }
+    }
+
+    .mat-mdc-select-panel {
+      border-radius: 8px;
+    }
+
+    .mat-mdc-option {
+      display: flex;
+      align-items: center;
+      padding-left: 16px !important;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .time-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .schedule-form-container {
+    h2 {
+      font-size: 18px;
+      padding: 16px 16px 0 16px;
+    }
+
+    .schedule-form mat-dialog-content {
+      padding: 0 16px;
+    }
+
+    .dialog-actions {
+      flex-direction: column;
+      padding: 16px;
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+}

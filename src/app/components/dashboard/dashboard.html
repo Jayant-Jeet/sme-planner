@@ -1,0 +1,242 @@
+<div class="dashboard-container">
+  <!-- Enhanced Header -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <div class="brand-section">
+        <img src="/assets/acn_logo.png"
+             alt="ACN Logo"
+             class="brand-icon"
+             (error)="onImageError($event)" />
+        <mat-icon *ngIf="imageLoadError" class="brand-icon-fallback">business</mat-icon>
+        <h1 class="brand-title">L&TT SME Planner</h1>
+      </div>
+
+      <div class="user-section">
+        <!-- User Menu Trigger -->
+        <button class="user-menu-trigger"
+                *ngIf="currentUser; else noUserTemplate"
+                (click)="toggleUserMenu()"
+                [class.active]="isUserMenuOpen">
+          <span class="user-name">{{ currentUser.name || 'User' }}</span>
+        </button>
+
+        <!-- Fallback for when user is not loaded -->
+        <ng-template #noUserTemplate>
+          <button class="user-menu-trigger"
+                  (click)="toggleUserMenu()"
+                  [class.active]="isUserMenuOpen">
+            <div class="user-avatar">
+              <mat-icon>person</mat-icon>
+            </div>
+            <span class="user-name">Guest User</span>
+          </button>
+        </ng-template>
+
+        <!-- User Dropdown Menu -->
+        <div class="user-dropdown" [class.show]="isUserMenuOpen">
+          <div class="user-dropdown-content">
+            <div class="user-profile-section">
+              <div class="user-avatar-large">
+                <img src="/assets/user_avatar.png" alt="User Avatar" class="user-avatar-img" style="width: 100%; height: 100%; object-fit: cover;" />
+              </div>
+              <div class="user-info-details">
+                <span class="user-name-large">{{ currentUser?.name }}</span>
+                <span class="user-role">{{ currentUser?.role }}</span>
+                <span class="user-email" *ngIf="currentUser?.email">{{ currentUser?.email }}</span>
+              </div>
+            </div>
+            <mat-divider></mat-divider>
+            <div class="dropdown-actions">
+              <button mat-menu-item (click)="logout()" class="logout-option">
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Backdrop -->
+        <div class="user-menu-backdrop"
+             *ngIf="isUserMenuOpen"
+             (click)="closeUserMenu()"
+             (keydown.escape)="closeUserMenu()"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="dashboard-main">
+    <div class="dashboard-content">
+      <!-- Page Header with Actions -->
+      <div class="page-header">
+        <div class="page-title-section">
+          <h2 class="page-title">Schedule Management</h2>
+          <p class="page-subtitle">Manage your availability and track your commitments</p>
+        </div>
+
+        <div class="action-buttons">
+          <button mat-stroked-button (click)="openSmeSearch()" class="secondary-action">
+            Search SMEs
+          </button>
+
+          <button mat-raised-button color="primary" (click)="openScheduleDialog()" class="primary-action">
+            New Schedule
+          </button>
+        </div>
+      </div>
+
+      <!-- Filters Card -->
+      <mat-card class="filters-card">
+        <mat-card-content>
+          <div class="filters-section">
+            <div class="filter-group">
+              <!-- Month Selector -->
+              <mat-form-field appearance="outline" class="month-selector">
+                <mat-label>Month</mat-label>
+                <mat-select [(value)]="selectedMonth" (selectionChange)="onMonthYearChange()">
+                  <mat-option *ngFor="let month of months" [value]="month.value">
+                    {{ month.name }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <!-- Year Selector -->
+              <mat-form-field appearance="outline" class="year-selector">
+                <mat-label>Year</mat-label>
+                <mat-select [(value)]="selectedYear" (selectionChange)="onMonthYearChange()">
+                  <mat-option *ngFor="let year of years" [value]="year">
+                    {{ year }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <!-- Get Effort Button (only for Supervisor and Lead) -->
+              <button *ngIf="isSupervisorOrLead()"
+                      mat-raised-button
+                      color="primary"
+                      (click)="getEffort()"
+                      class="effort-button">
+                Get Effort
+              </button>
+            </div>
+
+            <div class="schedule-stats">
+              <div class="stat-item">
+                <span class="stat-number">{{ schedules.length }}</span>
+                <span class="stat-label">Total Schedules</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">{{ getAvailableCount() }}</span>
+                <span class="stat-label">Available Days</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">{{ getBusyCount() }}</span>
+                <span class="stat-label">Busy Days</span>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Schedule Table Card -->
+      <mat-card class="schedule-card">
+        <mat-card-header>
+          <mat-card-title>
+            Schedule Overview
+          </mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+          <!-- Loading State -->
+          <div *ngIf="isLoading" class="loading-state">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Loading your schedules...</p>
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="!isLoading && schedules.length === 0" class="empty-state">
+            <div class="empty-state-content">
+              <h3>No schedules found</h3>
+              <p>You don't have any schedules for {{ getSelectedMonthName() }} {{ selectedYear }} yet.</p>
+              <button mat-raised-button color="primary" (click)="openScheduleDialog()">
+                Create Your First Schedule
+              </button>
+            </div>
+          </div>
+
+          <!-- Schedule Table -->
+          <div *ngIf="!isLoading && schedules.length > 0" class="table-container">
+            <table mat-table [dataSource]="schedules" class="schedule-table">
+              <!-- Date Column -->
+              <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef class="date-header">
+                  Date
+                </th>
+                <td mat-cell *matCellDef="let schedule" class="date-cell">
+                  {{ schedule.fromDate | date:'MMM dd, yyyy' }} - {{ schedule.toDate | date:'MMM dd, yyyy' }}
+                </td>
+              </ng-container>
+
+              <!-- Activity Column -->
+              <ng-container matColumnDef="activity">
+                <th mat-header-cell *matHeaderCellDef class="activity-header">
+                  Activity
+                </th>
+                <td mat-cell *matCellDef="let schedule" class="activity-cell">
+                  <div class="activity-info">
+                    <span class="activity-name">{{ schedule.activityName || 'No Activity' }}</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Time Column -->
+              <ng-container matColumnDef="time">
+                <th mat-header-cell *matHeaderCellDef class="time-header">
+                  Time
+                </th>
+                <td mat-cell *matCellDef="let schedule" class="time-cell">
+                  <div class="time-info">
+                    <span class="time-range">{{ schedule.fromTime }} - {{ schedule.toTime }}</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Description Column -->
+                <ng-container matColumnDef="description">
+                  <th mat-header-cell *matHeaderCellDef>Description</th>
+                  <td mat-cell *matCellDef="let schedule">
+                    <div class="description-info">
+                      <span class="activity-description">{{ schedule.description }}</span>
+                    </div>
+                  </td>
+                </ng-container>
+
+              <!-- Actions Column -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef class="actions-header">Actions</th>
+                <td mat-cell *matCellDef="let schedule" class="actions-cell">
+                  <div class="action-buttons">
+                    <button mat-icon-button
+                            (click)="openScheduleDialog(schedule)"
+                            title="Edit Schedule"
+                            class="edit-btn">
+                      <img src="/assets/edit.webp" alt="Edit" class="action-icon" />
+                    </button>
+                    <button mat-icon-button
+                            (click)="deleteSchedule(schedule)"
+                            title="Delete Schedule"
+                            class="delete-btn">
+                      <img src="/assets/delete.png" alt="Delete" class="action-icon" />
+                    </button>
+                  </div>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns" class="table-header"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+            </table>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </main>
+</div>

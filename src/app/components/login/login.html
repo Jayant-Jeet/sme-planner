@@ -1,0 +1,84 @@
+<div class="login-container">
+  <div class="login-background">
+    <div class="floating-shapes">
+      <div class="shape shape-1"></div>
+      <div class="shape shape-2"></div>
+      <div class="shape shape-3"></div>
+    </div>
+  </div>
+
+  <mat-card class="login-card">
+    <div class="logo-section">
+      <img src="assets/acn_logo.png" alt="Company Logo" class="company-logo">
+      <h1 class="app-title">L&TT SME Planner</h1>
+      <p class="app-subtitle">Welcome back! Please sign in to your account</p>
+    </div>
+
+    <mat-card-content class="login-content">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+        <div class="form-group">
+          <mat-form-field appearance="fill" class="modern-input">
+            <mat-label>Email Address</mat-label>
+            <input matInput formControlName="email" type="email" required placeholder="Enter your email">
+            <mat-error *ngIf="loginForm.get('email')?.hasError('required')">
+              Email is required
+            </mat-error>
+            <mat-error *ngIf="loginForm.get('email')?.hasError('email')">
+              Please enter a valid email address
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-group">
+          <mat-form-field appearance="fill" class="modern-input">
+            <mat-label>Password</mat-label>
+            <input matInput formControlName="password"
+                   [type]="hidePassword ? 'password' : 'text'"
+                   required
+                   placeholder="Enter your password">
+            <button mat-icon-button matSuffix
+                    (click)="hidePassword = !hidePassword"
+                    type="button"
+                    [attr.aria-label]="'Hide password'"
+                    [attr.aria-pressed]="hidePassword">
+              <img
+                *ngIf="hidePassword; else showPasswordIcon"
+                src="assets/hide_password.png"
+                alt="Hide password"
+                width="24"
+                height="24">
+              <ng-template #showPasswordIcon>
+                <img
+                  src="assets/show_password.png"
+                  alt="Show password"
+                  width="24"
+                  height="24">
+              </ng-template>
+            </button>
+            <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+              Password is required
+            </mat-error>
+            <mat-error *ngIf="loginForm.get('password')?.hasError('minlength')">
+              Password must be at least 6 characters long
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="error-message" *ngIf="errorMessage">
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <div class="login-actions">
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="loginForm.invalid || isLoading"
+            class="login-button">
+            <span>{{ isLoading ? 'Signing in...' : 'Sign In' }}</span>
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -1,0 +1,188 @@
+<div class="sme-search-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>SME Search & Dashboard</h2>
+    <button mat-button [mat-dialog-close]="true">Close</button>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    <div class="search-section">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>SME Email Address</mat-label>
+        <input
+          matInput
+          class="email-input"
+          [(ngModel)]="searchEmail"
+          placeholder="Enter SME email address"
+          type="email"
+          (keyup.enter)="searchSme()"
+          [disabled]="isSearching">
+      </mat-form-field>
+
+      <div class="search-actions">
+        <button
+          mat-stroked-button
+          color="primary"
+          (click)="searchSme()"
+          [disabled]="isSearching || !searchEmail.trim()">
+          <mat-spinner *ngIf="isSearching" diameter="20"></mat-spinner>
+          {{ isSearching ? 'Searching...' : 'Search SME' }}
+        </button>
+
+        <button
+          mat-stroked-button
+          (click)="clearSearch()"
+          [disabled]="isSearching">
+          Clear
+        </button>
+      </div>
+    </div>
+
+    <mat-divider *ngIf="hasSearched || searchResult"></mat-divider>
+
+    <!-- Search Results -->
+    <div class="results-section" *ngIf="hasSearched">
+      <!-- SME Found -->
+      <div *ngIf="searchResult" class="sme-dashboard">
+        <!-- SME Details Card -->
+        <mat-card class="sme-details-card">
+          <mat-card-header>
+            <div mat-card-avatar class="sme-avatar">
+              {{ getInitials(searchResult.name) }}
+            </div>
+            <mat-card-title>{{ searchResult.name }}</mat-card-title>
+            <mat-card-subtitle>{{ searchResult.email }}</mat-card-subtitle>
+          </mat-card-header>
+        </mat-card>
+
+        <!-- Schedule Statistics -->
+        <div class="stats-row">
+          <mat-card class="stat-card available">
+            <mat-card-content>
+              <div class="stat-content">
+                <div class="stat-info">
+                  <div class="stat-number">{{ getAvailableCount() }}</div>
+                  <div class="stat-label">Available</div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="stat-card busy">
+            <mat-card-content>
+              <div class="stat-content">
+                <div class="stat-info">
+                  <div class="stat-number">{{ getBusyCount() }}</div>
+                  <div class="stat-label">Busy</div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="stat-card unavailable">
+            <mat-card-content>
+              <div class="stat-content">
+                <div class="stat-info">
+                  <div class="stat-number">{{ getUnavailableCount() }}</div>
+                  <div class="stat-label">Unavailable</div>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Schedule Management -->
+        <mat-card class="schedule-card">
+          <mat-card-header>
+            <mat-card-title>
+              Schedule for {{ getMonthName(selectedMonth) }}
+            </mat-card-title>
+            <div class="header-actions">
+              <mat-form-field appearance="outline" class="month-selector">
+                <mat-label>Month</mat-label>
+                <mat-select [(value)]="selectedMonth" (selectionChange)="onMonthChange()">
+                  <mat-option value="2025-01">January 2025</mat-option>
+                  <mat-option value="2025-02">February 2025</mat-option>
+                  <mat-option value="2025-03">March 2025</mat-option>
+                  <mat-option value="2025-04">April 2025</mat-option>
+                  <mat-option value="2025-05">May 2025</mat-option>
+                  <mat-option value="2025-06">June 2025</mat-option>
+                  <mat-option value="2025-07">July 2025</mat-option>
+                  <mat-option value="2025-08">August 2025</mat-option>
+                  <mat-option value="2025-09">September 2025</mat-option>
+                  <mat-option value="2025-10">October 2025</mat-option>
+                  <mat-option value="2025-11">November 2025</mat-option>
+                  <mat-option value="2025-12">December 2025</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </mat-card-header>
+
+          <mat-card-content>
+            <div *ngIf="isLoadingSchedules" class="loading-container">
+              <mat-spinner diameter="40"></mat-spinner>
+              <p>Loading schedules...</p>
+            </div>
+
+            <div *ngIf="!isLoadingSchedules && schedules.length === 0" class="no-schedules">
+              <h4>No Schedules Found</h4>
+              <p>{{ searchResult.name }} has no schedules for {{ getMonthName(selectedMonth) }}.</p>
+            </div>
+
+            <div *ngIf="!isLoadingSchedules && schedules.length > 0" class="schedule-table-container">
+              <table mat-table [dataSource]="schedules" class="schedule-table">
+                <!-- Date Column -->
+                <ng-container matColumnDef="date">
+                  <th mat-header-cell *matHeaderCellDef>Date</th>
+                  <td mat-cell *matCellDef="let schedule">
+                    {{ schedule.fromDate | date:'MMM dd, yyyy' }} - {{ schedule.toDate | date:'MMM dd, yyyy' }}
+                  </td>
+                </ng-container>
+
+                <!-- Activity Column -->
+                <ng-container matColumnDef="activity">
+                  <th mat-header-cell *matHeaderCellDef>Activity</th>
+                  <td mat-cell *matCellDef="let schedule">
+                    <div class="activity-info">
+                      <span class="activity-name">{{ schedule.activityName }}</span>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <!-- Time Column -->
+                <ng-container matColumnDef="time">
+                  <th mat-header-cell *matHeaderCellDef>Time</th>
+                  <td mat-cell *matCellDef="let schedule">
+                    <div class="time-info">
+                      <span class="time-range">{{ schedule.fromTime }} - {{ schedule.toTime }}</span>
+                      <span class="duration">({{ calculateDuration(schedule.fromTime, schedule.toTime) }})</span>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <!-- Description Column -->
+                <ng-container matColumnDef="description">
+                  <th mat-header-cell *matHeaderCellDef>Description</th>
+                  <td mat-cell *matCellDef="let schedule">
+                    <div class="description-info">
+                      <span class="activity-description">{{ schedule.description }}</span>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+              </table>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- No Results -->
+      <div class="no-results" *ngIf="!searchResult">
+        <h4>No SME Found</h4>
+        <p>No SME was found with the email address "{{ searchEmail }}".</p>
+        <p>Please check the email address and try again.</p>
+      </div>
+    </div>
+  </mat-dialog-content>
+</div>
